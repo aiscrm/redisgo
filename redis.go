@@ -202,6 +202,16 @@ func (r *Redis) Zadd(key string, score int, member string) (reply interface{}, e
 	return r.Do("ZADD", key, score, member)
 }
 
+// Zrem 移除有序集中的一个，不存在的成员将被忽略。
+func (r *Redis) Zrem(key string, member string) (reply interface{}, err error) {
+	return r.Do("ZREM", key, member)
+}
+
+// Zscore 返回有序集中，成员的分数值。 如果成员元素不是有序集 key 的成员，或 key 不存在，返回 nil
+func (r *Redis) Zscore(key string, member string) (int64, error) {
+	return redis.Int64(r.Do("ZSCORE", key, member))
+}
+
 // Zrank 返回有序集中指定成员的排名。其中有序集成员按分数值递增(从小到大)顺序排列。score 值最小的成员排名为 0
 func (r *Redis) Zrank(key, member string) (int64, error) {
 	return redis.Int64(r.Do("ZRANK", key, member))
@@ -214,24 +224,24 @@ func (r *Redis) Zrevrank(key, member string) (int64, error) {
 
 // Zrange 返回有序集中，指定区间内的成员。其中成员的位置按分数值递增(从小到大)来排序。具有相同分数值的成员按字典序(lexicographical order )来排列。
 // 以 0 表示有序集第一个成员，以 1 表示有序集第二个成员，以此类推。或 以 -1 表示最后一个成员， -2 表示倒数第二个成员，以此类推。
-func (r *Redis) Zrange(key string, from, to int) (reply interface{}, err error) {
-	return r.Do("ZRANGE", key, from, to, "WITHSCORES")
+func (r *Redis) Zrange(key string, from, to int) (map[string]int64, error) {
+	return redis.Int64Map(r.Do("ZRANGE", key, from, to, "WITHSCORES"))
 }
 
 // Zrevrange 返回有序集中，指定区间内的成员。其中成员的位置按分数值递减(从大到小)来排列。具有相同分数值的成员按字典序(lexicographical order )来排列。
 // 以 0 表示有序集第一个成员，以 1 表示有序集第二个成员，以此类推。或 以 -1 表示最后一个成员， -2 表示倒数第二个成员，以此类推。
-func (r *Redis) Zrevrange(key string, from, to int) (reply interface{}, err error) {
-	return r.Do("ZREVRANGE", key, from, to, "WITHSCORES")
+func (r *Redis) Zrevrange(key string, from, to int) (map[string]int64, error) {
+	return redis.Int64Map(r.Do("ZREVRANGE", key, from, to, "WITHSCORES"))
 }
 
 // ZrangeByScore 返回有序集合中指定分数区间的成员列表。有序集成员按分数值递增(从小到大)次序排列。
 // 具有相同分数值的成员按字典序来排列
-func (r *Redis) ZrangeByScore(key string, from, to, offset, count int) (reply interface{}, err error) {
-	return r.Do("ZRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count)
+func (r *Redis) ZrangeByScore(key string, from, to, offset, count int) (map[string]int64, error) {
+	return redis.Int64Map(r.Do("ZRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count))
 }
 
 // ZrevrangeByScore 返回有序集中指定分数区间内的所有的成员。有序集成员按分数值递减(从大到小)的次序排列。
 // 具有相同分数值的成员按字典序来排列
-func (r *Redis) ZrevrangeByScore(key string, from, to, offset, count int) (reply interface{}, err error) {
-	return r.Do("ZREVRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count)
+func (r *Redis) ZrevrangeByScore(key string, from, to, offset, count int) (map[string]int64, error) {
+	return redis.Int64Map(r.Do("ZREVRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count))
 }
