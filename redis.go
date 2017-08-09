@@ -19,11 +19,6 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-type Cache interface {
-	Get(key string, val *interface{}) error
-	MustString(key string) string
-}
-
 type Redis struct {
 	pool *redis.Pool
 }
