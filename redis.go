@@ -118,17 +118,24 @@ func (r *Redis) Get(key string, val interface{}) (err error) {
 
 // Set 用法：Set("key", val, 60)，其中 expire 的单位为秒
 func (r *Redis) Set(key string, val interface{}, expire int) (reply interface{}, err error) {
+	var value interface{}
 	switch v := val.(type) {
 	case string:
-		_, err = r.Do("SETEX", key, expire, v)
+		value = v
 	case int:
-		_, err = r.Do("SETEX", key, expire, v)
+		value = v
 	default:
-		b, err := json.Marshal(v)
+		var b []byte
+		b, err = json.Marshal(v)
 		if err != nil {
-			//return
+			return
 		}
-		_, err = r.Do("SETEX", key, expire, string(b))
+		value = string(b)
+	}
+	if expire > 0 {
+		reply, err = r.Do("SETEX", key, expire, value)
+	} else {
+		reply, err = r.Do("SET", key, value)
 	}
 	return
 }
@@ -245,3 +252,9 @@ func (r *Redis) ZrangeByScore(key string, from, to, offset, count int) (map[stri
 func (r *Redis) ZrevrangeByScore(key string, from, to, offset, count int) (map[string]int64, error) {
 	return redis.Int64Map(r.Do("ZREVRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count))
 }
+
+// Publish 将信息发送到指定的频道，返回接收到信息的订阅者数量
+func (r *Redis) Publish(channel, message string) (int, error) {
+	return redis.Int(r.Do("PUBLISH", channel, message))
+}
+
