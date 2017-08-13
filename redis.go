@@ -107,37 +107,44 @@ func (r *Redis) GetInt(key string) (int, error) {
 	return redis.Int(r.Do("GET", key))
 }
 
-func (r *Redis) Get(key string, val interface{}) (err error) {
+func (r *Redis) GetInt64(key string) (int64, error) {
+	return redis.Int64(r.Do("GET", key))
+}
+
+func (r *Redis) GetBool(key string) (bool, error) {
+	return redis.Bool(r.Do("GET", key))
+}
+
+func (r *Redis) GetObject(key string, val interface{}) error {
 	reply, err := r.GetString(key)
 	if err != nil {
-		return
+		return err
 	}
-	json.Unmarshal([]byte(reply), val)
-	return
+	return json.Unmarshal([]byte(reply), val)
+}
+
+func (r *Redis) Get(key string) (interface{}, error) {
+	return r.Do("GET", key)
 }
 
 // Set 用法：Set("key", val, 60)，其中 expire 的单位为秒
-func (r *Redis) Set(key string, val interface{}, expire int) (reply interface{}, err error) {
+func (r *Redis) Set(key string, val interface{}, expire int) (interface{}, error) {
 	var value interface{}
 	switch v := val.(type) {
-	case string:
-		value = v
-	case int:
+	case string, int, uint, int8, int16, int32, int64, float32, float64, bool:
 		value = v
 	default:
-		var b []byte
-		b, err = json.Marshal(v)
+		b, err := json.Marshal(v)
 		if err != nil {
-			return
+			return nil, err
 		}
 		value = string(b)
 	}
 	if expire > 0 {
-		reply, err = r.Do("SETEX", key, expire, value)
+		return r.Do("SETEX", key, expire, value)
 	} else {
-		reply, err = r.Do("SET", key, value)
+		return r.Do("SET", key, value)
 	}
-	return
 }
 
 // Exists 检查键是否存在
@@ -180,18 +187,42 @@ func (r *Redis) DecrBy(key string, amount int) (val int64, err error) {
 
 // Hmset 用法：cache.Redis.Hmset("key", val, 60)
 func (r *Redis) Hmset(key string, val interface{}, expire int) (err error) {
-	_, err = r.Do("HMSET", redis.Args{}.Add(key).AddFlat(val)...)
+	conn := r.pool.Get()
+	defer conn.Close()
+	err = conn.Send("HMSET", redis.Args{}.Add(key).AddFlat(val)...)
 	if err != nil {
 		return
 	}
 	if expire > 0 {
-		_, err = r.Do("EXPIRE", key, int64(expire))
+		err = conn.Send("EXPIRE", key, int64(expire))
 	}
+	if err != nil {
+		return
+	}
+	err = conn.Flush()
+	return
+	//_, err = r.Do("HMSET", redis.Args{}.Add(key).AddFlat(val)...)
+	//if err != nil {
+	//	return
+	//}
+	//if expire > 0 {
+	//	_, err = r.Do("EXPIRE", key, int64(expire))
+	//}
+	//return
+}
+
+func (r *Redis) Hset(key, field string, value interface{}) (interface{}, error) {
+	return r.Do("HSET", key, field, value)
+}
+
+// Hmget 用法：cache.Redis.Hget("key", "field_name")
+func (r *Redis) Hget(key, field string) (reply interface{}, err error) {
+	reply, err = redis.Values(r.Do("HGET", key, field))
 	return
 }
 
-// Hmget 用法：cache.Redis.Hmget("key", &val)
-func (r *Redis) Hmget(key string, val interface{}) error {
+// Hmget 用法：cache.Redis.HgetAll("key", &val)
+func (r *Redis) HgetAll(key string, val interface{}) error {
 	v, err := redis.Values(r.Do("HGETALL", key))
 	if err != nil {
 		return err
