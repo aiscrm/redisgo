@@ -217,7 +217,7 @@ func (r *Redis) Hset(key, field string, value interface{}) (interface{}, error) 
 
 // Hmget 用法：cache.Redis.Hget("key", "field_name")
 func (r *Redis) Hget(key, field string) (reply interface{}, err error) {
-	reply, err = redis.Values(r.Do("HGET", key, field))
+	reply, err = r.Do("HGET", key, field)
 	return
 }
 
