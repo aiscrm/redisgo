@@ -13,7 +13,6 @@ import (
 	"os/signal"
 	"syscall"
 	"sync"
-	"strconv"
 	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
@@ -26,14 +25,14 @@ type Redis struct {
 var redisInstance *Redis
 var once sync.Once
 
-func New(ip string, port int, password string, db int) *Redis {
+func New(addr, password string, db int) *Redis {
 	once.Do(func() {
 		pool := &redis.Pool{
 			MaxIdle:     3,
 			IdleTimeout: 240 * time.Second,
 
 			Dial: func() (redis.Conn, error) {
-				c, err := redis.Dial("tcp", ip + ":" + strconv.Itoa(port))
+				c, err := redis.Dial("tcp", addr)	//ip + ":" + strconv.Itoa(port))
 				if err != nil {
 					return nil, err
 				}
