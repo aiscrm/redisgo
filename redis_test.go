@@ -7,7 +7,7 @@ import (
 
 func TestRedis(t *testing.T) {
 	var err error
-	New("localhost", 6379, "mypassword", 1)
+	New("localhost:6379", "mypassword", 1)
 	r := GetInstance()
 
 	r.Do("FLUSHDB")

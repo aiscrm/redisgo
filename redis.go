@@ -212,7 +212,18 @@ func (r *Redis) Hmset(key string, val interface{}, expire int) (err error) {
 	//return
 }
 
-func (r *Redis) Hset(key, field string, value interface{}) (interface{}, error) {
+func (r *Redis) Hset(key, field string, val interface{}) (interface{}, error) {
+	var value interface{}
+	switch v := val.(type) {
+	case string, int, uint, int8, int16, int32, int64, float32, float64, bool:
+		value = v
+	default:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		value = string(b)
+	}
 	return r.Do("HSET", key, field, value)
 }
 
@@ -220,6 +231,34 @@ func (r *Redis) Hset(key, field string, value interface{}) (interface{}, error) 
 func (r *Redis) Hget(key, field string) (reply interface{}, err error) {
 	reply, err = r.Do("HGET", key, field)
 	return
+}
+
+func (r *Redis) HgetString(key, field string) (reply string, err error) {
+	reply, err = redis.String(r.Do("HGET", key, field))
+	return
+}
+
+func (r *Redis) HgetInt(key, field string) (reply int, err error) {
+	reply, err = redis.Int(r.Do("HGET", key, field))
+	return
+}
+
+func (r *Redis) HgetInt64(key, field string) (reply int64, err error) {
+	reply, err = redis.Int64(r.Do("HGET", key, field))
+	return
+}
+
+func (r *Redis) HgetBool(key, field string) (reply bool, err error) {
+	reply, err = redis.Bool(r.Do("HGET", key, field))
+	return
+}
+
+func (r *Redis) HgetObject(key, field string, val interface{}) error {
+	reply, err := r.HgetString(key, field)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(reply), val)
 }
 
 // Hmget 用法：cache.Redis.HgetAll("key", &val)
