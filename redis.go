@@ -276,7 +276,7 @@ func (r *Redis) HgetAll(key string, val interface{}) error {
 }
 
 // Zadd 将一个成员元素及其分数值加入到有序集当中
-func (r *Redis) Zadd(key string, score int, member string) (reply interface{}, err error) {
+func (r *Redis) Zadd(key string, score int64, member string) (reply interface{}, err error) {
 	return r.Do("ZADD", key, score, member)
 }
 
@@ -302,25 +302,25 @@ func (r *Redis) Zrevrank(key, member string) (int64, error) {
 
 // Zrange 返回有序集中，指定区间内的成员。其中成员的位置按分数值递增(从小到大)来排序。具有相同分数值的成员按字典序(lexicographical order )来排列。
 // 以 0 表示有序集第一个成员，以 1 表示有序集第二个成员，以此类推。或 以 -1 表示最后一个成员， -2 表示倒数第二个成员，以此类推。
-func (r *Redis) Zrange(key string, from, to int) (map[string]int64, error) {
+func (r *Redis) Zrange(key string, from, to int64) (map[string]int64, error) {
 	return redis.Int64Map(r.Do("ZRANGE", key, from, to, "WITHSCORES"))
 }
 
 // Zrevrange 返回有序集中，指定区间内的成员。其中成员的位置按分数值递减(从大到小)来排列。具有相同分数值的成员按字典序(lexicographical order )来排列。
 // 以 0 表示有序集第一个成员，以 1 表示有序集第二个成员，以此类推。或 以 -1 表示最后一个成员， -2 表示倒数第二个成员，以此类推。
-func (r *Redis) Zrevrange(key string, from, to int) (map[string]int64, error) {
+func (r *Redis) Zrevrange(key string, from, to int64) (map[string]int64, error) {
 	return redis.Int64Map(r.Do("ZREVRANGE", key, from, to, "WITHSCORES"))
 }
 
 // ZrangeByScore 返回有序集合中指定分数区间的成员列表。有序集成员按分数值递增(从小到大)次序排列。
 // 具有相同分数值的成员按字典序来排列
-func (r *Redis) ZrangeByScore(key string, from, to, offset, count int) (map[string]int64, error) {
+func (r *Redis) ZrangeByScore(key string, from, to, offset int64, count int) (map[string]int64, error) {
 	return redis.Int64Map(r.Do("ZRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count))
 }
 
 // ZrevrangeByScore 返回有序集中指定分数区间内的所有的成员。有序集成员按分数值递减(从大到小)的次序排列。
 // 具有相同分数值的成员按字典序来排列
-func (r *Redis) ZrevrangeByScore(key string, from, to, offset, count int) (map[string]int64, error) {
+func (r *Redis) ZrevrangeByScore(key string, from, to, offset int64, count int) (map[string]int64, error) {
 	return redis.Int64Map(r.Do("ZREVRANGEBYSCORE", key, from, to, "WITHSCORES", "LIMIT", offset, count))
 }
 
