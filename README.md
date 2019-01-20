@@ -1,30 +1,64 @@
-# 说明
+# redisgo
+基于[github.com/gomodule/redigo](https://github.com/gomodule/redigo)，对常用的redis用法进行了封装，让你更方便的使用。
 
-封装redis常用方法，使用 `github.com/garyburd/redigo/redis` 库。
-
-有以下特性：
+## 特性
 
 - 支持连接池
 - 支持退出时关闭连接池
-- 支持存储struct类型，可以序列化为json存储或存储为哈希表
+- 支持各种类型数据的存储和读取，可以直接获取指定类型的存储值
 - 支持有序集合，可以用来做延迟队列或排行榜等用途
-- 支持单实例工厂模式，并防止并发问题
+- 支持redis订阅/发布，在redis故障或网络异常时，自动重新订阅
+- 支持列表，包含阻塞式和非阻塞式读取
 
 ## 安装
 
-```
-go get github.com/garyburd/redigo/redis
-go get github.com/aiscrm/redisgo
-```
-
-## 示例：
-
-```
-New("localhost", 6379, "This is password", 0)
-r := GetInstance()
-r.set("keyname", "keyvalue", 30)
+```sh
+go get -u github.com/aiscrm/cache
 ```
 
-## 单元测试
+## 快速开始
 
-完成了部分代码的单元测试
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/aiscrm/redisgo"
+)
+
+type User struct {
+	Name string
+	Age  int
+}
+
+func main() {
+	c, err := redisgo.New(
+		redisgo.Options{
+			Addr:     "127.0.0.1:6379",
+			Password: "",
+			Prefix:   "aiscrm_",
+		})
+	if err != nil {
+		panic(err)
+	}
+	c.Set("name", "corel", 30)
+	c.Set("age", "23", 30)
+	name, err := c.GetString("name")
+	age, err := c.GetInt("age")
+	fmt.Printf("Name=%s, age=%d", name, age)
+	user := &User{
+		Name: "corel",
+		Age:  23,
+	}
+	c.Set("user", user, 30)
+	user2 := &User{}
+	c.GetObject("user", user2)
+	fmt.Printf("user: %+v", user2)
+}
+```
+
+## 特别鸣谢
+
+- redis缓存部分基于 `github.com/gomodule/redigo` 进行封装
+- redis命令参考 http://redisdoc.com/ 和 http://www.runoob.com/redis/
