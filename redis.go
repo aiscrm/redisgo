@@ -480,7 +480,7 @@ func (c *Cacher) LREM(key string, count int, member interface{}) (int, error) {
 
 // LLen 获取列表的长度
 func (c *Cacher) LLen(key string) (int64, error) {
-	return Int64(c.Do("RPOP", c.getKey(key)))
+	return Int64(c.Do("LLen", c.getKey(key)))
 }
 
 // LRange 返回列表 key 中指定区间内的元素，区间以偏移量 start 和 stop 指定。
