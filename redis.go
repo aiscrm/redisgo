@@ -68,6 +68,9 @@ func (c *Cacher) StartAndGC(options interface{}) error {
 		if opts.Unmarshal == nil {
 			c.unmarshal = json.Unmarshal
 		}
+		if opts.Prefix != "" {
+			c.prefix = opts.Prefix
+	        }
 		pool := &redis.Pool{
 			MaxActive:   opts.MaxActive,
 			MaxIdle:     opts.MaxIdle,
